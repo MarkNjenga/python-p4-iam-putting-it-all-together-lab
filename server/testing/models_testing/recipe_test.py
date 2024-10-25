@@ -5,7 +5,7 @@ from app import app
 from models import db, Recipe
 
 class TestRecipe:
-    '''User in models.py'''
+    '''User  in models.py'''
 
     def test_has_attributes(self):
         '''has attributes title, instructions, and minutes_to_complete.'''
@@ -59,16 +59,27 @@ class TestRecipe:
                 db.session.commit()
 
     def test_requires_50_plus_char_instructions(self):
+        '''requires instructions to be at least 50 characters long.'''
         with app.app_context():
 
             Recipe.query.delete()
             db.session.commit()
 
             '''must raise either a sqlalchemy.exc.IntegrityError with constraints or a custom validation ValueError'''
-            with pytest.raises( (IntegrityError, ValueError) ):
+            with pytest.raises((IntegrityError, ValueError)):
                 recipe = Recipe(
                     title="Generic Ham",
-                    instructions="idk lol")
+                    instructions="This instruction text is too short.")  # Example of a short instruction
                 db.session.add(recipe)
                 db.session.commit()
 
+            # Now we will test with valid instructions
+            try:
+                recipe = Recipe(
+                    title="Valid Recipe",
+                    instructions="This instruction text is long enough to pass validation. " + 
+                                 "It contains more than fifty characters, which is required.")
+                db.session.add(recipe)
+                db.session.commit()
+            except (IntegrityError, ValueError) as e:
+                pytest.fail(f"Unexpected error raised: {e}")
